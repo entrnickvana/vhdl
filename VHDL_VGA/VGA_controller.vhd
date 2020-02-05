@@ -53,16 +53,68 @@ begin
 		end if;
 	end process pixel_clk_gen;
 
+
+
+
+
+
 	frame_state : process (pixel_clk_out) is
---	  variable h_sync_begin : natural :=  
+	  variable h_length     : natural   := 1280;
+	  variable v_length     : natural   := 1024;	  
+	  variable h_f_porch 	: natural	:= 48;
+	  variable h_b_porch 	: natural	:= 248;	  
+	  variable h_sync_len 	: natural	:= 112;	  	  
+	  variable h_sync_beg   : natural   := h_length + h_f_porch;  
+	  variable h_sync_end   : natural   := h_length + h_f_porch + h_sync_len;  	  
+
+	  variable v_f_porch 	: natural 	:= 1;
+	  variable v_b_porch 	: natural 	:= 38;	  
+	  variable v_sync_beg   : natural   := v_length + v_f_porch;  
+	  variable v_sync_end   : natural   := v_length + v_f_porch + v_sync_len;  	  
+
+	  variable v_sync_len 	: natural 	:= 3;	  	  
+	  variable blank_state  : std_logic := '0';	  
+	  variable h_total_len  : natural := h_length + h_f_porch + h_sync_len + h_b_porch;
+	  variable v_total_len  : natural := v_length + v_f_porch + v_sync_len + v_b_porch;	  
+	  variable h_bits       : natural := natural(log2(ceil(real(h_total_len))));
+	  variable v_bits       : natural := natural(log2(ceil(real(v_total_len))));
+	  variable h_count      : unsigned(h_bits downto 0);
+	  variable v_count      : unsigned(v_bits downto 0);	  
+
+
 	  begin
+	  	if(rising_edge(pixel_clk_out)) then
+	  		v_count <= v_count;
+	  		h_count <= h_count + 1;
 
+	  		if(h_count = h_total_len) then
+	  			h_count <= (others => '0');
+	  			v_length <= v_length + 1;
+
+	  			if(v_count = v_total_len) then
+	  				h_count <= (others => '0');
+	  				v_count <= (others => '0');	  				
+	  			end if;
+	  		end if;
+
+	  		h_sync  <= '1';
+			if((h_count >= h_sync_beg) and (h_sync_end >= h_count)) then
+				h_sync <= '0';
+			end if;	  		
+
+	  		v_sync  <= '1';	  		
+			if((v_count >= v_sync_beg) and (v_sync_end >= v_count)) then
+				v_sync <= '0';
+			end if;	  		
+
+			blank_state <= '0';
+			if((h_count >= h_length) or (v_count >= v_length)) then
+				blank_state <= '1';
+			end if;
+
+	  	end if;
 	end process frame_state;
-
-
-
-
-
+	
 end architecture behav;
 
 
