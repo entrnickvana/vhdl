@@ -89,10 +89,12 @@ begin
 	  variable blank_state  : std_logic := '0';	  
 	  variable h_total_len  : natural := h_length + h_f_porch + h_sync_len + h_b_porch;
 	  variable v_total_len  : natural := v_length + v_f_porch + v_sync_len + v_b_porch;	  
-	  variable h_bits       : natural := natural(log2(ceil(real(h_total_len))));
-	  variable v_bits       : natural := natural(log2(ceil(real(v_total_len))));
-	  variable h_count      : unsigned(h_bits downto 0);
-	  variable v_count      : unsigned(v_bits downto 0);	  
+	  --variable h_bits       : natural := natural(log2(ceil(real(h_total_len))));
+	  variable h_bits       : natural := 32;
+	  --variable v_bits       : natural := natural(log2(ceil(real(v_total_len))));
+	  variable v_bits       : natural := 32;
+	  variable h_count      : unsigned(h_bits-1 downto 0);
+	  variable v_count      : unsigned(v_bits-1 downto 0);	  
 
 
 	  begin
