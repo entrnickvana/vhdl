@@ -15,16 +15,16 @@ use std.textio.all;
 
 entity image_buffer is
     generic(
-    	RES_WIDTH   : in natural := 1920;
-    	RES_HEIDTH  : in natural := 1200    	
+    	RES_WIDTH   : in natural := 1280;
+    	RES_HEIDTH  : in natural := 1024    	
     	);
-	port(
-		disp_en 	: in  std_logic;
-		row     	: in  std_logic_vector(31 downto 0);
-		col     	: in  std_logic_vector(31 downto 0);
-		red     	: out std_logic_vector(7 downto 0);		
-		green   	: out std_logic_vector(7 downto 0);		
-		blue  		: out std_logic_vector(7 downto 0)						
+    port(
+        disp_en 	: in  std_logic;
+        row     	: in  std_logic_vector(31 downto 0);
+        col     	: in  std_logic_vector(31 downto 0);
+        red     	: out std_logic_vector(7 downto 0);		
+        green   	: out std_logic_vector(7 downto 0);		
+        blue  		: out std_logic_vector(7 downto 0)
       );
 end entity image_buffer;
 

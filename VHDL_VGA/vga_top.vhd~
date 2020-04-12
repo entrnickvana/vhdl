@@ -1,0 +1,22 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.std_logic_unsigned.all;
+USE ieee.numeric_std.ALL;
+use IEEE.numeric_bit.all;
+use ieee.std_logic_arith.ALL;
+use IEEE.std_logic_signed.all;
+use ieee.math_real.all;
+library std;
+use ieee.std_logic_textio.all;
+use std.textio.all;
+
+entity vga_top is
+  port( ref_clk_100M : in std_logic);
+end entity vga_top;
+
+architecture struct of vga_top is
+begin
+
+  vga1 : VGA_controller
+  
+end architecture struct;

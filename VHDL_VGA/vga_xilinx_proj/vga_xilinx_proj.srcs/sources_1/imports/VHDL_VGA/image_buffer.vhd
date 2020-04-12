@@ -22,9 +22,9 @@ entity image_buffer is
 		disp_en 	: in  std_logic;
 		row     	: in  std_logic_vector(31 downto 0);
 		col     	: in  std_logic_vector(31 downto 0);
-		red     	: out std_logic_vector(7 downto 0);		
-		green   	: out std_logic_vector(7 downto 0);		
-		blue  		: out std_logic_vector(7 downto 0)						
+		red     	: out std_logic_vector(3 downto 0);		
+		green   	: out std_logic_vector(3 downto 0);		
+		blue  		: out std_logic_vector(3 downto 0)						
       );
 end entity image_buffer;
 
@@ -36,8 +36,8 @@ architecture behav of image_buffer is
   begin
 
   red <= (others => '1');
-  green <= (others => '1');
-  blue <= (others => '1');  
+  green <= (others => '0');
+  blue <= (others => '0');  
 
 
 end architecture behav;

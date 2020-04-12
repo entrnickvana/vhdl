@@ -1,3 +1,29 @@
+-- Declare a VHDL component with the same name as the Verilog module (respecting case sensitivity) that you want to instantiate.
+--For example,
+--COMPONENT MY_VHDL_UNIT PORT (
+--Q : out  STD_ULOGIC;
+--D : in   STD_ULOGIC;
+--C : in   STD_ULOGIC );
+--END COMPONENT;
+-- Use named association to instantiate the Verilog module.
+--For example,
+--UUT : MY_VHDL_UNIT PORT MAP(
+--Q => O,
+--D => I,
+--C => CLK);
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.std_logic_unsigned.all;
+USE ieee.numeric_std.ALL;
+use IEEE.numeric_bit.all;
+use ieee.std_logic_arith.ALL;
+use IEEE.std_logic_signed.all;
+use ieee.math_real.all;
+library std;
+use ieee.std_logic_textio.all;
+use std.textio.all;
 
 
 entity VGA_controller is
@@ -55,9 +81,6 @@ begin
 
 
 
-
-
-
 	frame_state : process (pixel_clk_out) is
 	  variable h_length     : natural   := 1280;
 	  variable v_length     : natural   := 1024;	  
@@ -89,7 +112,7 @@ begin
 
 	  		if(h_count = h_total_len) then
 	  			h_count <= (others => '0');
-	  			v_length <= v_length + 1;
+	  			v_count <= v_count + 1;
 
 	  			if(v_count = v_total_len) then
 	  				h_count <= (others => '0');
@@ -114,7 +137,7 @@ begin
 
 	  	end if;
 	end process frame_state;
-	
+
 end architecture behav;
 
 
