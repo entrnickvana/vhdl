@@ -86,6 +86,8 @@ begin
 	  begin
             if(rising_edge(pixel_clk)) then
 
+
+
               -- horizontal counter
               if(h_count = (h_total_len-1)) then
                 h_count := (others => '0');
@@ -93,10 +95,10 @@ begin
                 h_count := h_count + 1;
               end if;
 
-              if(h_count = (h_total_len-1) and (v_count = (v_total_len-1)) then
+              if(h_count = (h_total_len-1)) and (v_count = (v_total_len-1)) then
                 v_count := (others => '0');
               elsif (h_count = (h_total_len-1)) then
-                v_count <= v_count + 1;
+                v_count := v_count + 1;
               end if;
 
               if(h_count >= (h_f_porch + h_f_porch-1)) and (h_count < (h_f_porch + h_f_porch + h_sync_len-1)) then

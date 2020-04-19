@@ -10,84 +10,72 @@ library std;
 use ieee.std_logic_textio.all;
 use std.textio.all;
 
+--Resolution (pixels)	Refresh Rate (Hz)	Pixel Clock (MHz)	Horizontal (pixel clocks)				Vertical (rows)				h_sync Polarity	v_sync Polarity
+--                                                                      Display	Front Porch	Sync Pulse	Back Porch	Display	Front Porch	Sync Pulse	Back Porch		
+--1280x1024	        60	                108	                1280	48	        112	        248	        1024	1	        3	        38	           p	p
+
 
 entity VGA_controller is
     generic(
-    	RES_WIDTH   	: in natural := 1920;
-    	RES_HEIDTH  	: in natural := 1200;
+    	RES_WIDTH   	: in natural := 1280;
+    	RES_HEIDTH  	: in natural := 1024;
+        H_POL           : in std_logic := '1';
+        V_POL           : in std_logic := '1';        
     	S_CLK_FREQ  	: in real    := 100.0;
-    	PIXEL_CLK_FREQ  : in real    := 193.16;  	
+    	PIXEL_CLK_FREQ  : in real    := 108.0;
     	EXT_CLK_MODE    : in boolean := TRUE
     	);
 
 	port(
-		s_clk   		: in  std_logic;
+		s_clk   	: in  std_logic;
 		ext_clk     	: in  std_logic;
-		disp_en 		: in  std_logic;
+		disp_en 	: out  std_logic;
 		n_sync      	: out std_logic;
 		n_blank     	: out std_logic;
 		h_sync      	: out std_logic;
 		v_sync      	: out std_logic;
-		pixel_clk_out 	: out std_logic;
-
-		row     		: out  std_logic_vector(31 downto 0);
-		col     		: out  std_logic_vector(31 downto 0)
+		row     	: out  std_logic_vector(31 downto 0);
+		col     	: out  std_logic_vector(31 downto 0)
       );
 end entity VGA_controller;
 
 architecture behav of VGA_controller is
-	signal pixel_clk 		: std_logic;
-	signal pixel_clk_out_sig: std_logic;
+	signal pixel_clk : std_logic;
 
 begin
 
-    n_sync <= '0';
-    pixel_clk_out <= pixel_clk_out_sig;
+  n_sync <= '0';
+  n_blank <= '0';
+  
+  
 	--Multiplex pixel_clk for higher resolutions
 	gen_clk_sel_ext: if EXT_CLK_MODE = true GENERATE
-		pixel_clk_out_sig <= ext_clk;
+		pixel_clk <= ext_clk;
 	end generate gen_clk_sel_ext;
 	
-	gen_clk_sel_int: if EXT_cLK_MODE = false GENERATE
-		pixel_clk_out_sig <= pixel_clk;
+	gen_clk_sel_int: if EXT_CLK_MODE = false GENERATE
+		pixel_clk <= s_clk;
 	end GENERATE gen_clk_sel_int;
 
-	-- count = 
-	pixel_clk_gen : process (s_clk) is
-	  variable count_real_ns 		: real 		:= (S_CLK_FREQ/PIXEL_CLK_FREQ)*1.0e3;
-	  variable count_integer_ns    	: integer   := integer(count_real_ns);
-	  variable count_bits           : natural   := natural(log2(ceil(real(count_integer_ns))));
-	  variable count_unsigned       : unsigned(count_bits downto 0);
-	  begin
-	  	if (rising_edge(s_clk)) then
-		   	pixel_clk <= '0';	  	
-	  		count_unsigned := count_unsigned +1;	  				   	
-	  		if(count_unsigned = integer(count_integer_ns)) then
-	  			pixel_clk <= '1';
-	  			count_unsigned := (others => '0');
-	  		end if;
-		end if;
-	end process pixel_clk_gen;
-
-
-
-	frame_state : process (pixel_clk_out_sig) is
+	frame_state : process (pixel_clk) is
 	  variable h_length     : natural   := 1280;
-	  variable v_length     : natural   := 1024;	  
-	  variable h_f_porch 	: natural	:= 48;
-	  variable h_b_porch 	: natural	:= 248;	  
-	  variable h_sync_len 	: natural	:= 112;	  	  
+	  variable h_f_porch 	: natural   := 48;
+	  variable h_b_porch 	: natural   := 248;	  
+	  variable h_sync_len 	: natural   := 112;	  	  
 	  variable h_sync_beg   : natural   := h_length + h_f_porch;  
-	  variable h_sync_end   : natural   := h_length + h_f_porch + h_sync_len;  	  
-
-	  variable v_f_porch 	: natural 	:= 1;
-	  variable v_b_porch 	: natural 	:= 38;	  
+	  variable h_sync_end   : natural   := h_length + h_f_porch + h_sync_len;
+          
+	  variable v_length     : natural   := 1024;	  
+	  variable v_f_porch 	: natural   := 1;
+	  variable v_b_porch 	: natural   := 38;	  
 	  variable v_sync_len   : natural   := 3;
 	  variable v_sync_beg   : natural   := v_length + v_f_porch;  
 	  variable v_sync_end   : natural   := v_length + v_f_porch + v_sync_len;  	  
 	  
-	  variable blank_state  : std_logic := '0';	  
+	  variable blank_state  : std_logic := '0';
+          --                                  1280    +    48     +     112 + 248=1688
 	  variable h_total_len  : natural := h_length + h_f_porch + h_sync_len + h_b_porch;
+          --                                  1024    + 1         +3+38=1066
 	  variable v_total_len  : natural := v_length + v_f_porch + v_sync_len + v_b_porch;	  
 	  --variable h_bits       : natural := natural(log2(ceil(real(h_total_len))));
 	  variable h_bits       : natural := 32;
@@ -95,44 +83,52 @@ begin
 	  variable v_bits       : natural := 32;
 	  variable h_count      : unsigned(h_bits-1 downto 0);
 	  variable v_count      : unsigned(v_bits-1 downto 0);	  
-
-
 	  begin
-	  	if(rising_edge(pixel_clk_out_sig)) then
-	  		v_count := v_count;
-	  		h_count := h_count + 1;
-	  		row <= std_logic_vector(v_count);
-	  		col <= std_logic_vector(h_count);
+            if(rising_edge(pixel_clk)) then
 
-	  		if(h_count = h_total_len) then
-	  			h_count := (others => '0');
-	  			v_count := v_count + 1;
 
-	  			if(v_count = v_total_len) then
-	  				h_count := (others => '0');
-	  				v_count := (others => '0');	  				
-	  			end if;
-	  		end if;
 
-	  		h_sync  <= '1';
-			if((h_count >= h_sync_beg) and (h_sync_end >= h_count)) then
-				h_sync <= '0';
-			end if;	  		
+              -- horizontal counter
+              if(h_count = (h_total_len-1)) then
+                h_count := (others => '0');
+              else
+                h_count := h_count + 1;
+              end if;
 
-	  		v_sync  <= '1';	  		
-			if((v_count >= v_sync_beg) and (v_sync_end >= v_count)) then
-				v_sync <= '0';
-			end if;	  		
+              if(h_count = (h_total_len-1)) and (v_count = (v_total_len-1)) then
+                v_count := (others => '0');
+              elsif (h_count = (h_total_len-1)) then
+                v_count := v_count + 1;
+              end if;
 
-			blank_state := '0';
-			if((h_count >= h_length) or (v_count >= v_length)) then
-				blank_state := '1';
-			end if;
+              if(h_count >= (h_f_porch + h_f_porch-1)) and (h_count < (h_f_porch + h_f_porch + h_sync_len-1)) then
+                h_sync <= H_POL;
+              else
+                h_sync <= not(H_POL);
+              end if;
 
-	  	end if;
+              if(v_count >= (v_f_porch + v_length-1)) and (v_count < (v_f_porch + v_length + v_sync_len-1)) then
+                v_sync <= V_POL;
+              else
+                v_sync <= not(V_POL);
+              end if;
+
+              if( h_count < h_length) and (v_count < v_length) then
+                disp_en <= '1';
+              else
+                disp_en <= '0';
+              end if;
+                
+              --disp_en <= '1' when h_count < h_length and v_count < v_length else '0';
+
+              row <= std_logic_vector(v_count);
+              col <= std_logic_vector(h_count);
+              
+	    end if;
 	end process frame_state;
-
 end architecture behav;
+
+    
 
 
 

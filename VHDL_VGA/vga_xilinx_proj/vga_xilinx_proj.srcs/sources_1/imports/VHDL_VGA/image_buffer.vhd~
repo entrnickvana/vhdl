@@ -35,9 +35,17 @@ architecture behav of image_buffer is
   
   begin
 
-  red <= (others => '0');
-  green <= (others => '0');
-  blue <= (others => '0');  
-
-
+    image : process(disp_en, row, col) is
+    begin
+      if (disp_en = '1') then
+	red <= (others => '0');
+	green <= (others => '0');
+	blue <= (others => '1');
+      else
+	red <= (others => '0');
+	green <= (others => '0');
+	blue <= (others => '0');
+      end if;
+    end process image;
+      
 end architecture behav;

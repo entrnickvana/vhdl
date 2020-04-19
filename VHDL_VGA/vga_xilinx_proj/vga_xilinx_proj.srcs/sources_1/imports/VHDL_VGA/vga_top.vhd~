@@ -83,8 +83,10 @@ end component;
 component VGA_controller
     generic(
     	RES_WIDTH   	: in natural := 1920; 
-    	RES_HEIDTH  	: in natural := 1200; 
-    	S_CLK_FREQ  	: in real    := 100.0;
+    	RES_HEIDTH  	: in natural := 1200;
+        H_POL           : in std_logic := '1';
+    	V_POL           : in std_logic := '1';
+        S_CLK_FREQ  	: in real    := 100.0;
     	PIXEL_CLK_FREQ  : in real    := 108.0;  	
     	EXT_CLK_MODE    : in boolean := true
     	);
@@ -97,7 +99,6 @@ component VGA_controller
 	  n_blank     	        : out std_logic;
 	  h_sync      	        : out std_logic;
 	  v_sync      	        : out std_logic;
-	  pixel_clk_out 	: out std_logic;
 	  row     	        : in  std_logic_vector(31 downto 0);
 	  col     	        : in  std_logic_vector(31 downto 0)
       );
@@ -117,8 +118,9 @@ end component;
 --       blue  	    : out std_logic_vector(7 downto 0)
 --      );
 
-begin
+signal disp_en_sig : std_logic;
 
+begin
 
   dummy_reset <= '0';
   VGA_HS <= h_sync_sig;
@@ -138,18 +140,19 @@ clk_wiz_inst :  component clk_wiz_0
     generic map(
       RES_WIDTH   	=> 1280,
       RES_HEIDTH  	=> 1024,
+      H_POL             => '1',
+      V_POL             => '1',
       S_CLK_FREQ  	=> 100.0,
       PIXEL_CLK_FREQ    => 108.0,  	
       EXT_CLK_MODE      => true)             
     port map(
-      s_clk         => s_clk,       
-      ext_clk       => pxl,  
-      disp_en       => '1',  
+      s_clk         => pxl_clk_108M,       
+      ext_clk       => pxl_clk_108M,  
+      disp_en       => disp_en_sig,  
       n_sync        => n_sync_sig,  
       n_blank       => n_blank_sig,  
       h_sync        => h_sync_sig,  
       v_sync        => v_sync_sig,  
-      pixel_clk_out => pixel_clk_out_sig,	
       row           => row_sig,  
       col           => col_sig);
 
@@ -158,34 +161,34 @@ clk_wiz_inst :  component clk_wiz_0
       RES_WIDTH  => 1280,
       RES_HEIDTH => 1024)
     port map(
-      disp_en => '1',
+      disp_en => disp_en_sig,
       row     => row_sig,
       col     => col_sig,
       red     => VGA_R,      
       green   => VGA_G,       	
       blue    => VGA_B);
   
-  led0_cntr : entity work.led_counter(behav)
-    generic map(
-      INPUT_CLK_FREQ_M => 100.0e6,
-      DESIRED_LED_PER_us => 1.0e6
-      )
-    port map(
-      input_clk => s_clk,
-      rst => '0',
-      out_pulse => LED(0)
-      );
+--  led0_cntr : entity work.led_counter(behav)
+--    generic map(
+--      INPUT_CLK_FREQ_M => 100.0e6,
+--      DESIRED_LED_PER_us => 1.0e6
+--      )
+--    port map(
+--      input_clk => s_clk,
+--      rst => '0',
+--      out_pulse => LED(0)
+--      );
   
-  led1_cntr : entity work.led_counter(behav)
-    generic map(
-      INPUT_CLK_FREQ_M => 108.0e6,
-      DESIRED_LED_PER_us => 1.0e6
-      )
-    port map(
-      input_clk => pxl_clk_108M,
-      rst => dummy_reset,
-      out_pulse => LED(1)
-      );
+--  led1_cntr : entity work.led_counter(behav)
+--    generic map(
+--      INPUT_CLK_FREQ_M => 108.0e6,
+--      DESIRED_LED_PER_us => 1.0e6
+--      )
+--    port map(
+--      input_clk => pxl_clk_108M,
+--      rst => dummy_reset,
+--      out_pulse => LED(1)
+--      );
       
   
 end architecture struct;
